@@ -90,10 +90,10 @@ function autopass_export(){
   }
   var show_num = num_files;
   if (num_files < 10) {
-    var a = ['Zero','One','Two','Three','Four','Five','Six','Seven','Eight','Nine'];
+    var a = ['Null','En','To','Tre','Fire','Fem','Seks','Syv','Åtte','Ni'];
     show_num = a[num_files];
   }
-  SpreadsheetApp.getUi().alert(show_num + ' JSON-files generated without errors');
+  SpreadsheetApp.getUi().alert(show_num + ' JSON-files generert uten feil');
 }
 
 function autopass_JSON_convert(file) {
