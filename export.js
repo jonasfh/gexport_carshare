@@ -84,22 +84,21 @@ function excel_copy(){
 function JSON_convert(file) {
   if (typeof file == 'undefined') file = DriveApp.getFileById('1SHCjnEDgfSKUvoZt7FQtlQZ3HBp-jf-Es0IiJnieD78');
   var spreadsheet = SpreadsheetApp.open(file);
-  var sheet = spreadsheet.getActiveSheet();
+  var sheet = spreadsheet.getSheetByName('Sheet1');
   data = [];
   var row = 12;
-  while (true) {
-    var values = sheet.getRange(row, 1, 1, 5).getDisplayValues();
-    var d = values[0][1];
+  var values = sheet.getRange(row, 1, sheet.getLastRow(), sheet.getLastColumn()).getDisplayValues();
+  for (var i = 0; i < values.length; i++) {
+    var v = values[i];
+    if((v[0]) == 'Antall passeringer:') break;
+    var d = v[1];
     var date = d.substr(6,4) + '-' + d.substr(3,2) + '-' +d.substr(0,2) + ' ' + d.substr(12,5);
-    var reg_id = values[0][4];
-    var amount = values[0][3];
-    var comment = values[0][2];
+    var reg_id = v[4];
+    var amount = v[3];
+    var comment = v[2];
     data.push({date: date, reg_id: reg_id, amount: amount, comment: comment})
-    if((values[0][0] + '') == 'Antall passeringer:') break;
-    Logger.log(row);
-    row++;
   }
-  var output = DriveApp.createFile(file.getName(), JSON.stringify(data), 'application/json');
+  var output = DriveApp.createFile(file.getName() + '.json', JSON.stringify(data), 'application/json');
   DriveApp.getFolderById('1AuQMCTR9Mmoc_VInq9VyOjrf9H7wzo99').addFile(output);
   DriveApp.removeFile(output);
 }
