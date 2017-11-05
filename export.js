@@ -10,6 +10,10 @@ function onOpen() {
   sheet.addMenu("Faktura-export",menuEntries);
 }
 
+
+function testMe(){
+ Logger.log(getProperty('json')) 
+}
 /**
  * Convert Excel file to Sheets
  * @param {Blob} excelFile The Excel file blob data; Required
@@ -55,32 +59,27 @@ function convertExcel2Sheets(excelFile, filename) {
 
 function autopass_export(){
   var sh = SpreadsheetApp.getActiveSheet();
-  // Folder Bildeleringen/letsgo/autopass_v1
-  var folder = DriveApp.getFolderById('1VhX2wdlemDOYpt8R0hp5BKUMDv4tdFPz');
+  // Folder Bildeleringen/letsgo/autopass
+  var folder = DriveApp.getFolderById(getProperty('autopass'));
   // Folder Bildeleringen/letsgo/autopass_v1/JSON
-  var json_folder = DriveApp.getFolderById('1AuQMCTR9Mmoc_VInq9VyOjrf9H7wzo99');
+  var json_folder = DriveApp.getFolderById(getProperty('json'));
   var files = folder.getFiles();
-  var converted = {}
-  while (files.hasNext()){
-    var file = files.next();
-    if (file.getMimeType() == 'application/vnd.google-apps.spreadsheet') {
-      converted[file.getName()] = file;
-    }
-  }
-  files = folder.getFiles();
   var num_files = 0;
   while (files.hasNext()){
     var file = files.next();
     if (file.getMimeType() == 'application/vnd.ms-excel') {
-      var f2 = converted[file.getName() + '.gsheet'];
-      if (!f2) {
-        f2 = convertExcel2Sheets(file.getBlob(), file.getName());
-        folder.addFile(f2);
-        DriveApp.removeFile(f2);
-        f2.setName(f2.getName() + '.gsheet');
+      var gsfile = null;
+      if (!folder.getFilesByName(file.getName() + '.gsheet').hasNext()) {
+        gsfile = convertExcel2Sheets(file.getBlob(), file.getName());
+        folder.addFile(gsfile);
+        DriveApp.removeFile(gsfile);
+        gsfile.setName(gsfile.getName() + '.gsheet');
+      }
+      else {
+        gsfile = folder.getFilesByName(file.getName() + '.gsheet').next()
       }
       if(!json_folder.getFilesByName(file.getName() + '.json.txt').hasNext()) {
-        var data = autopass_JSON_convert(f2);
+        var data = autopass_JSON_convert(gsfile);
         var output = DriveApp.createFile(file.getName() + '.json.txt', JSON.stringify(data, null, '\t'), 'application/json');
         json_folder.addFile(output);
         DriveApp.removeFile(output);
@@ -93,11 +92,11 @@ function autopass_export(){
     var a = ['Null','En','To','Tre','Fire','Fem','Seks','Syv','Åtte','Ni'];
     show_num = a[num_files];
   }
-  SpreadsheetApp.getUi().alert(show_num + ' JSON-files generert uten feil');
+  SpreadsheetApp.getUi().alert(show_num + ' JSON-filer generert uten feil');
 }
 
 function autopass_JSON_convert(file) {
-  if (typeof file == 'undefined') file = DriveApp.getFileById('1SHCjnEDgfSKUvoZt7FQtlQZ3HBp-jf-Es0IiJnieD78');
+  // if (typeof file == 'undefined') file = DriveApp.getFileById('1SHCjnEDgfSKtlQZ3HBp-jf-Es0IiJnieD78'); // default value
   var spreadsheet = SpreadsheetApp.open(file);
   var sheet = spreadsheet.getSheetByName('Sheet1');
   data = [];
