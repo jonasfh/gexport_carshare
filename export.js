@@ -10,10 +10,6 @@ function onOpen() {
   sheet.addMenu("Faktura-export",menuEntries);
 }
 
-
-function testMe(){
- Logger.log(getProperty('json')) 
-}
 /**
  * Convert Excel file to Sheets
  * @param {Blob} excelFile The Excel file blob data; Required
