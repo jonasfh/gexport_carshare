@@ -1,18 +1,20 @@
 function onOpen() {
-  var menuEntries = [ {name: "test download", functionName: "downloadFile"}
-                     ];
+  var menuEntries = 
+  [ 
+    {
+      name: "Exporter Autopass filer",
+      functionName: "autopass_export"
+    }
+  ];
   var sheet = SpreadsheetApp.getActiveSpreadsheet();
-  sheet.addMenu("Utils",menuEntries);
+  sheet.addMenu("Faktura-export",menuEntries);
 }
-
-//testConvertExcel2Sheets();
 
 /**
  * Convert Excel file to Sheets
  * @param {Blob} excelFile The Excel file blob data; Required
  * @param {String} filename File name on uploading drive; Required
- * @param {Array} arrParents Array of folder ids to put converted file in; Optional, will default to Drive root folder
- * @return {Spreadsheet} Converted Google Spreadsheet instance
+ * @return {Spreadsheet} File object pointing to converted Google Spreadsheet
  **/
 function convertExcel2Sheets(excelFile, filename) {
 
@@ -35,7 +37,6 @@ function convertExcel2Sheets(excelFile, filename) {
   // Create payload (body) data for updating converted file's name and parent folder(s)
   var payloadData = {
     title: filename,
-    parents: []
   };
   // Parameters for Drive API File Update request (see https://developers.google.com/drive/v2/reference/files/update)
   var updateParams = {
@@ -51,37 +52,43 @@ function convertExcel2Sheets(excelFile, filename) {
   return DriveApp.getFileById(fileDataResponse.id);
 }
 
-//  Logger.log(ss.getId());
 
-
-function excel_copy(){
+function autopass_export(){
   var sh = SpreadsheetApp.getActiveSheet();
   // Folder Bildeleringen/letsgo/autopass_v1
   var folder = DriveApp.getFolderById('1VhX2wdlemDOYpt8R0hp5BKUMDv4tdFPz');
+  // Folder Bildeleringen/letsgo/autopass_v1/JSON
+  var json_folder = DriveApp.getFolderById('1AuQMCTR9Mmoc_VInq9VyOjrf9H7wzo99');
   var files = folder.getFiles();
   var converted = {}
   while (files.hasNext()){
     var file = files.next();
     if (file.getMimeType() == 'application/vnd.google-apps.spreadsheet') {
-      converted[file.getName()] = true;
+      converted[file.getName()] = file;
     }
   }
   files = folder.getFiles();
   while (files.hasNext()){
     var file = files.next();
     if (file.getMimeType() == 'application/vnd.ms-excel') {
-      if (converted[file.getName()]) {
-        continue;
+      var f2 = converted[file.getName() + '.gsheet'];
+      if (!f2) {
+        f2 = convertExcel2Sheets(file.getBlob(), file.getName());
+        folder.addFile(f2);
+        DriveApp.removeFile(f2);
+        f2.setName(f2.getName() + '.gsheet');
       }
-      var f2 = convertExcel2Sheets(file.getBlob(), file.getName());
-      folder.addFile(f2);
-      DriveApp.removeFile(f2);
-      JSON_convert(f2);
+      if(!json_folder.getFilesByName(file.getName()).hasNext()) {
+        var data = autopass_JSON_convert(f2);
+        var output = DriveApp.createFile(file.getName() + '.json', JSON.stringify(data, null, '\t'), 'application/json');
+        json_folder.addFile(output);
+        DriveApp.removeFile(output);
+      }
     }
   }
 }
 
-function JSON_convert(file) {
+function autopass_JSON_convert(file) {
   if (typeof file == 'undefined') file = DriveApp.getFileById('1SHCjnEDgfSKUvoZt7FQtlQZ3HBp-jf-Es0IiJnieD78');
   var spreadsheet = SpreadsheetApp.open(file);
   var sheet = spreadsheet.getSheetByName('Sheet1');
@@ -98,7 +105,5 @@ function JSON_convert(file) {
     var comment = v[2];
     data.push({date: date, reg_id: reg_id, amount: amount, comment: comment})
   }
-  var output = DriveApp.createFile(file.getName() + '.json', JSON.stringify(data), 'application/json');
-  DriveApp.getFolderById('1AuQMCTR9Mmoc_VInq9VyOjrf9H7wzo99').addFile(output);
-  DriveApp.removeFile(output);
+  return data;
 }
