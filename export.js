@@ -68,6 +68,7 @@ function autopass_export(){
     }
   }
   files = folder.getFiles();
+  var num_files = 0;
   while (files.hasNext()){
     var file = files.next();
     if (file.getMimeType() == 'application/vnd.ms-excel') {
@@ -78,14 +79,21 @@ function autopass_export(){
         DriveApp.removeFile(f2);
         f2.setName(f2.getName() + '.gsheet');
       }
-      if(!json_folder.getFilesByName(file.getName()).hasNext()) {
+      if(!json_folder.getFilesByName(file.getName() + '.json.txt').hasNext()) {
         var data = autopass_JSON_convert(f2);
-        var output = DriveApp.createFile(file.getName() + '.json', JSON.stringify(data, null, '\t'), 'application/json');
+        var output = DriveApp.createFile(file.getName() + '.json.txt', JSON.stringify(data, null, '\t'), 'application/json');
         json_folder.addFile(output);
         DriveApp.removeFile(output);
+        num_files ++;
       }
     }
   }
+  var show_num = num_files;
+  if (num_files < 10) {
+    var a = ['Zero','One','Two','Three','Four','Five','Six','Seven','Eight','Nine'];
+    show_num = a[num_files];
+  }
+  SpreadsheetApp.getUi().alert(show_num + ' JSON-files generated without errors');
 }
 
 function autopass_JSON_convert(file) {
