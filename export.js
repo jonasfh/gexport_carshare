@@ -106,7 +106,7 @@ function autopass_JSON_convert(file) {
     var reg_id = v[4];
     var amount = v[3];
     var comment = v[2];
-    data.push({date: date, reg_id: reg_id, amount: amount, comment: comment})
+    data.push({date: date, reg_id: reg_id, amount: amount.replace(',','.'), comment: comment})
   }
   return data;
 }
