@@ -63,16 +63,22 @@ function autopass_export(){
   var generated_data = [];
   while (files.hasNext()){
     var file = files.next();
-    if (file.getMimeType() == 'application/vnd.ms-excel') {
+    if (file.getName().substr(-4) == '.xls') {
       var gsfile = null;
-      if (!folder.getFilesByName(file.getName() + '.gsheet').hasNext()) {
-        gsfile = convertExcel2Sheets(file.getBlob(), file.getName());
-        folder.addFile(gsfile);
-        DriveApp.removeFile(gsfile);
-        gsfile.setName(gsfile.getName() + '.gsheet');
+      if (file.getMimeType() == 'application/vnd.google-apps.spreadsheet') {
+          gsfile = file;
       }
-      else {
-        gsfile = folder.getFilesByName(file.getName() + '.gsheet').next()
+      else if (file.getMimeType() == 'application/vnd.ms-excel') {
+//|| file.getMimeType() == 'application/vnd.google-apps.spreadsheet'
+        if (!folder.getFilesByName(file.getName() + '.gsheet').hasNext()) {
+          gsfile = convertExcel2Sheets(file.getBlob(), file.getName());
+          folder.addFile(gsfile);
+          DriveApp.removeFile(gsfile);
+          gsfile.setName(gsfile.getName() + '.gsheet');
+        }
+        else {
+          gsfile = folder.getFilesByName(file.getName() + '.gsheet').next();
+        }
       }
       if(!json_folder.getFilesByName(file.getName() + '.json.txt').hasNext()) {
         var gObject = {
