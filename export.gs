@@ -2,12 +2,12 @@ function onOpen() {
   var menuEntries = 
   [ 
     {
-      name: "Exporter Autopass filer",
+      name: "Eksporter Autopass - filer",
       functionName: "autopass_export"
     }
   ];
   var sheet = SpreadsheetApp.getActiveSpreadsheet();
-  sheet.addMenu("Faktura-export",menuEntries);
+  sheet.addMenu("Faktura-eksport",menuEntries);
 }
 
 /**
@@ -104,7 +104,7 @@ function autopass_export(){
     show_num = a[num_files];
   }
   var htmlOutput = HtmlService
-     .createHtmlOutput('<p>' + show_num + ' JSON-filer generert. Sjekk STATS - ark for statistikk og feilmeldinger</p>')
+     .createHtmlOutput('<p>' + show_num + ' JSON-fil(er) generert. Sjekk STATS - ark for statistikk og feilmeldinger</p>')
      .setWidth(250)
      .setHeight(300);
  SpreadsheetApp.getUi().showModelessDialog(htmlOutput, 'Export ferdig');
@@ -139,8 +139,8 @@ function report_basic_stats(obj) {
       sheet.getRange(startAt + 3, 1, 1, 1).setValue("Ingen feilmeldinger fra fileksport").setFontWeight("bold");
     }
     for (j = 0; j < obj[i].errors.length; j++) {
-      var r2 = sheet.getRange(startAt + 4 + j, 1, 1, 5);
-      r2.setValues([[obj[i].errors[j].message, "Type:", obj[i].errors[j].type, "Linje no:", obj[i].errors[j].line_no]]);
+      var r2 = sheet.getRange(startAt + 4 + j, 1, 1, 3);
+      r2.setValues([[obj[i].errors[j].message, "Linje nr:", obj[i].errors[j].line_no]]);
     }
     startAt += 6 + obj[i].errors.length;
   }
@@ -159,7 +159,7 @@ function autopass_JSON_convert(file, gObject) {
     if((v[0]) == 'Antall passeringer:') break;
     var d = v[1];
     if (d.trim() == "" ) {
-      gObject.errors.push({"line_no": row + i, "type": "MISSING TIME", "message": "Tid mangler for rad."});      
+      gObject.errors.push({"line_no": row + i, "type": "MISSING TIME", "message": "Tidspunkt mangler for raden"});      
     }
     var date = d.substr(6,4) + '-' + d.substr(3,2) + '-' +d.substr(0,2) + ' ' + d.substr(12,5);
     var reg_id = v[4].trim();
@@ -173,25 +173,35 @@ function autopass_JSON_convert(file, gObject) {
     }
     
     if (gObject.max_amount - amount < 0) gObject.max_amount = amount;
-    if (chip_id == "" && reg_id == "") {
-        gObject.errors.push({"line_no": row + i, "type": "MISSING BOTH ID", "message": "Mangler både reg.id. og chip id."});      
+    if (amount < 0) {
+      gObject.errors.push({"line_no": row + i, "type": "NEGATIVE AMOUNT",
+        "message": "Det er negativt beløp på denne raden."});   
+      continue;
+    }
+    else if (chip_id == "" && reg_id == "") {
+      gObject.errors.push({"line_no": row + i, "type": "MISSING BOTH ID",
+        "message": "Raden mangler både registrerings-nummer og og autopass-chip id."});      
     }
     else if (chip_id == "") {
       // Ignore, this is OK
-        gObject.errors.push({"line_no": row + i, "type": "MISSING CHIP ID", "message": "Mangler chip id."});      
+      gObject.errors.push({"line_no": row + i, "type": "MISSING CHIP ID",
+        "message": "Raden mangler autopass-chip id."});
     }
     else if (chip_id in reg_id_arr) {
       if (reg_id == "") {
-        gObject.errors.push({"line_no": row + i, "type": "REPLACED REGID", "message": "Erstattet regid med tidligere registrert."});      
+        gObject.errors.push({"line_no": row + i, "type": "REPLACED REGID",
+          "message": "Erstattet registreringsnummer med registreringsnummer for denne autopass-id på en tidligere rad."});      
         reg_id = reg_id_arr[chip_id];
       }
       else if (reg_id_arr[chip_id] != reg_id) {
-        gObject.errors.push({"line_no": row + i, "type": "MULTIPLE CHIP REGID", "message": "Flere reg.nr. for chip: " + chip_id});
+        gObject.errors.push({"line_no": row + i, "type": "MULTIPLE CHIP REGID",
+          "message": "Det er flere ulike registreringsnummer for denne chip-id: " + chip_id});
       }
     }
     else {
       if (reg_id == "") {
-        gObject.errors.push({"line_no": row + i, "type": "MISSING REGID", "message": "Rad mangler reg.id. og ingen erstatning."});
+        gObject.errors.push({"line_no": row + i, "type": "MISSING REGID",
+          "message": "Denne raden mangler registreringsnummer. Sjekk om det kan etterfylles i filen."});
       }
       else {
         reg_id_arr[chip_id] = reg_id;
