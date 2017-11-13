@@ -97,7 +97,11 @@ function autopass_export(){
     var a = ['Null','En','To','Tre','Fire','Fem','Seks','Syv','Åtte','Ni'];
     show_num = a[num_files];
   }
-  SpreadsheetApp.getUi().alert(show_num + ' JSON-filer generert. Sjekk STATS - ark for statistikk og feilmeldinger');
+  var htmlOutput = HtmlService
+     .createHtmlOutput('<p>' + show_num + ' JSON-filer generert. Sjekk STATS - ark for statistikk og feilmeldinger</p>')
+     .setWidth(250)
+     .setHeight(300);
+ SpreadsheetApp.getUi().showModelessDialog(htmlOutput, 'Export ferdig');
 }
 
 function report_basic_stats(obj) {
@@ -106,23 +110,30 @@ function report_basic_stats(obj) {
   sheet.getParent().setActiveSheet(sheet);
   var startAt = 5;
   // Calculate number of rows
-  var numrows = obj.length * 5 + 3;
+  var numrows = obj.length * 5 + 4;
   for(i = 0; i<obj.length; i++) {
     numrows += obj[i].errors.length + 1;
   }
   sheet.insertRowsBefore(startAt, numrows);
+  startAt++;
   for (i = 0; i < obj.length; i++) {
-    sheet.getRange(startAt, 1, 1, 4).setFontWeight("bold");
     var range = sheet.getRange(startAt, 1, 3, 3);
     range.setValues(
       [
-        ["Eksportert dato: " + new Date().toString(), "Filnavn", obj[i].file_name],
+        ["Eksportert dato: " + new Date().toString().substr(4, 21), "Filnavn", obj[i].file_name],
         ["Ant. Linjer", "Største beløp", "Ant. 0 - beløp"], 
         [obj[i].num_lines, obj[i].max_amount, obj[i].num_zeros],
       ]
     );
+    sheet.getRange(startAt, 1, 1, 3).setFontWeight("bold").setFontSize(14).setBackgroundRGB(252, 251, 224);
+    if (obj[i].errors.length > 0) {
+      sheet.getRange(startAt + 3, 1, 1, 1).setValue("Feilmeldinger").setFontWeight("bold");
+    }
+    else {
+      sheet.getRange(startAt + 3, 1, 1, 1).setValue("Ingen feilmeldinger fra fileksport").setFontWeight("bold");
+    }
     for (j = 0; j < obj[i].errors.length; j++) {
-      var r2 = sheet.getRange(startAt + 4 + j, 1, 1, 5).setFontWeight("normal").setBackground("white");
+      var r2 = sheet.getRange(startAt + 4 + j, 1, 1, 5);
       r2.setValues([[obj[i].errors[j].message, "Type:", obj[i].errors[j].type, "Linje no:", obj[i].errors[j].line_no]]);
     }
     startAt += 6 + obj[i].errors.length;
@@ -150,6 +161,11 @@ function autopass_JSON_convert(file, gObject) {
     var amount = +v[3].replace(',','.');
     var comment = v[2];
     gObject.num_lines++;
+    if (amount == 0) {
+      gObject.num_zeros++;
+      continue;
+    }
+    
     if (gObject.max_amount - amount < 0) gObject.max_amount = amount;
     if (chip_id == "" && reg_id == "") {
         gObject.errors.push({"line_no": row + i, "type": "MISSING BOTH ID", "message": "Mangler både reg.id. og chip id."});      
@@ -175,7 +191,6 @@ function autopass_JSON_convert(file, gObject) {
         reg_id_arr[chip_id] = reg_id;
       }
     }
-    amount == 0 && gObject.num_zeros++;
     // add data
     data.push({date: date, reg_id: reg_id, amount: amount, comment: comment})
   }
