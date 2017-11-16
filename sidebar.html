@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript">
+    var deletimer = -1;
+    function listFiles(data) {
+    var txt = "";
+    var ul = $("<ul></ul>");
+    if (!data.length) {
+      $('#file_list').text("Ingen uhånterte filer!");
+      return;
+    }
+    for(i=0; i<data.length; i++){
+      var b = $("<button></button>");
+      b.addClass("export");
+      b.text("Eksporter!");
+      b.attr("id", data[i].id);
+      $(document).on("click", ".export", function(event) {
+        $(event.target).text(" | ");
+        deletimer = setInterval(function() {
+          if ($(event.target).text() == '--') {
+            $(event.target).text('  |  ');
+          }
+          else {
+            $(event.target).text('--');
+          }
+        }, 500);
+        google.script.run.withSuccessHandler(exportedFile)
+          .autopass_JSON_convert($(event.target).attr("id"));
+      });
+      ul.append($("<li></li>").append(data[i].name + " ").append(b));
+    }
+    $('#file_list').html(ul);
+    }
+    function exportedFile(data) {
+      clearInterval(deletimer);
+      $("#" + data).attr("style", "background-color:#CCCCFF;").text(" - OK - ").prop("disabled", true);
+    }
+    </script>
+  </head>
+  <body>
+    <h1>Eksportverktøy</h1>
+    
+    <button onClick="$('#file_list').text('Waiting...');google.script.run.withSuccessHandler(listFiles).listUhandledFiles()">List nye filer</button>
+    <div id="file_list"></div>
+  </body>
+</html>
