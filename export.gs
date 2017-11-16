@@ -8,6 +8,42 @@ function onOpen() {
   ];
   var sheet = SpreadsheetApp.getActiveSpreadsheet();
   sheet.addMenu("Faktura-eksport",menuEntries);
+  
+  var html = HtmlService.createHtmlOutputFromFile('sidebar.html');
+  SpreadsheetApp.getUi().showSidebar(html);
+}
+
+function listUhandledFiles() {
+  // Folder Bildeleringen/letsgo/autopass
+  var folder = DriveApp.getFolderById(getProperty('autopass'));
+  // Folder Bildeleringen/letsgo/autopass_v1/JSON
+  var json_folder = DriveApp.getFolderById(getProperty('json'));
+  var files = folder.getFiles();
+  var outfiles = [];
+  while (files.hasNext()){
+    var file = files.next();
+    if (file.getName().substr(-4) == '.xls') {
+      var gsfile = null;
+      if (file.getMimeType() == 'application/vnd.google-apps.spreadsheet') {
+          gsfile = file;
+      }
+      else if (file.getMimeType() == 'application/vnd.ms-excel') {
+        if (!folder.getFilesByName(file.getName() + '.gsheet').hasNext()) {
+          gsfile = convertExcel2Sheets(file.getBlob(), file.getName());
+          folder.addFile(gsfile);
+          DriveApp.removeFile(gsfile);
+          gsfile.setName(gsfile.getName() + '.gsheet');
+        }
+        else {
+          gsfile = folder.getFilesByName(file.getName() + '.gsheet').next();
+        }
+      }
+      if(!json_folder.getFilesByName(file.getName() + '.json.txt').hasNext()) {
+        outfiles.push({"name":gsfile.getName(), "id":gsfile.getId()});
+      }
+    }
+  }
+  return outfiles;
 }
 
 /**
@@ -88,7 +124,7 @@ function autopass_export(){
           "num_zeros": 0, 
           "errors": [],
         }
-        var data = autopass_JSON_convert(gsfile, gObject);
+        var data = autopass_JSON_convert(gsfile.getId(), gObject);
         var output = DriveApp.createFile(file.getName() + '.json.txt', JSON.stringify(data, null, '\t'), 'application/json');
         json_folder.addFile(output);
         DriveApp.removeFile(output);
@@ -146,9 +182,20 @@ function report_basic_stats(obj) {
   }
 }
 
-function autopass_JSON_convert(file, gObject) {
+function autopass_JSON_convert(fid, gObject) {
   // if (typeof file == 'undefined') file = DriveApp.getFileById('1SHCjnEDgfSKtlQZ3HBp-jf-Es0IiJnieD78'); // default value
-  var spreadsheet = SpreadsheetApp.open(file);
+  var spreadsheet = SpreadsheetApp.openById(fid);
+  var report = false;
+  if (typeof gObject == 'undefined') {
+    report = true;
+    gObject = {
+      "file_name": spreadsheet.getName(),
+      "num_lines": 0, 
+      "max_amount": 0, 
+      "num_zeros": 0, 
+      "errors": [],
+    }
+  }
   var sheet = spreadsheet.getSheetByName('Sheet1');
   data = [];
   var row = 12;
@@ -209,6 +256,15 @@ function autopass_JSON_convert(file, gObject) {
     }
     // add data
     data.push({date: date, reg_id: reg_id, amount: amount, comment: comment})
+  }
+  if (report) {
+    var file = DriveApp.getFileById(fid);
+    var json_folder = DriveApp.getFolderById(getProperty('json'));
+    var output = DriveApp.createFile(file.getName() + '.json.txt', JSON.stringify(data, null, '\t'), 'application/json');
+    json_folder.addFile(output);
+    DriveApp.removeFile(output);
+    report_basic_stats([gObject]);
+    return fid;
   }
   return data;
 }
