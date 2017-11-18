@@ -4,10 +4,15 @@
     <base target="_top">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script type="text/javascript">
-    var deletimer = -1;
-    function listFiles(data) {
+  var deletimer = -1;
+  var intcount = 0;
+  function listFiles(data) {
+    $('#file_list').html($('<h2></h2>').text("Filer i autopass-mappen som ikke er eksportert"));
+    $('#spinner').text('');
+    clearTimeouts();
     var txt = "";
     var ul = $("<ul></ul>");
+    var sp = 'Eksporterer';
     if (!data.length) {
       $('#file_list').text("Ingen uhånterte filer!");
       return;
@@ -15,35 +20,48 @@
     for(i=0; i<data.length; i++){
       var b = $("<button></button>");
       b.addClass("export");
-      b.text("Eksporter!");
-      b.attr("id", data[i].id);
+      b.text("Eksporter til JSON");
       $(document).on("click", ".export", function(event) {
-        $(event.target).text(" | ");
+        $('#spinner').text(sp);
         deletimer = setInterval(function() {
-          if ($(event.target).text() == '--') {
-            $(event.target).text('  |  ');
-          }
-          else {
-            $(event.target).text('--');
-          }
+          $('#spinner').text(sp + (Array(intcount%4+1).join(".")));
+          intcount++;
         }, 500);
         google.script.run.withSuccessHandler(exportedFile)
-          .autopass_JSON_convert($(event.target).attr("id"));
+          .autopass_JSON_convert($(event.target).parent('li').attr("id"));
       });
-      ul.append($("<li></li>").append(data[i].name + " ").append(b));
+      ul.append($("<li></li>").attr("id", data[i].id).append(data[i].name + " ").append(b));
     }
-    $('#file_list').html(ul);
+    $('#file_list').append(ul);
+  }
+  function exportedFile(data) {
+    clearTimeouts();
+    $('#spinner').text('');
+    $("#" + data.fid + ' .export').remove()
+    $("#" + data.fid).html($('<a></a>').attr('href', data.url).text('Last ned ' + data.name));
+  }
+  function getFileList() {
+    $('#file_list').text('');
+    var sp = 'Laster fil-liste'
+    deletimer = setInterval(function() {
+      $('#spinner').text(sp + (Array(intcount%4+1).join(".")));
+      intcount++;
+    }, 500);
+    google.script.run.withSuccessHandler(listFiles).listUhandledFiles();
+  }
+  function clearTimeouts() {
+    for (var i = 1; i < deletimer + 50; i++) {
+      window.clearInterval(i);
     }
-    function exportedFile(data) {
-      clearInterval(deletimer);
-      $("#" + data).attr("style", "background-color:#CCCCFF;").text(" - OK - ").prop("disabled", true);
-    }
+  }
     </script>
   </head>
-  <body>
+  <body onLoad="getFileList()">
     <h1>Eksportverktøy</h1>
-    
-    <button onClick="$('#file_list').text('Waiting...');google.script.run.withSuccessHandler(listFiles).listUhandledFiles()">List nye filer</button>
+    <button onClick="getFileList()">Oppdater fil-liste</button>
+    <br/><br/>
+    <div id="spinner"></div>
+    <br/>
     <div id="file_list"></div>
   </body>
 </html>
