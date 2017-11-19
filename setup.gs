@@ -4,7 +4,6 @@ function getProperty(name) {
     name = 'json';
   }
   if (Object.keys(global_setup).length === 0 && global_setup.constructor === Object) {
-    Logger.log("Running")
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("SETUP");
     var range = sheet.getRange("setup").getValues();
     for (var i=0; i<range.length; i++) {
