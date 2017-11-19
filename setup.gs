@@ -1,7 +1,17 @@
+global_setup = {};
 function getProperty(name) {
-  var props = {
-    autopass: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
-    json: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+  if (typeof name == 'undefined') {
+    name = 'json';
   }
-  return props[name];
+  if (Object.keys(global_setup).length === 0 && global_setup.constructor === Object) {
+    Logger.log("Running")
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("SETUP");
+    var range = sheet.getRange("setup").getValues();
+    for (var i=0; i<range.length; i++) {
+      if (range[i][0] != "") {
+        global_setup[range[i][0]] = range[i][1];       
+      }
+    }
+  }
+  return global_setup[name];
 }
