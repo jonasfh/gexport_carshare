@@ -41,6 +41,11 @@
     $("#" + data.fid).html($('<a></a>').attr('href', data.url).text('Last ned ' + data.name));
   }
   function getFileList() {
+    // display folders:
+    $("#folders").empty()
+    google.script.run.withSuccessHandler(showFolder).getFolderUrl("autopass");
+    google.script.run.withSuccessHandler(showFolder).getFolderUrl("json");
+    
     $('#file_list').text('');
     var sp = 'Laster fil-liste'
     deletimer = setInterval(function() {
@@ -54,10 +59,19 @@
       window.clearInterval(i);
     }
   }
+  function showFolder(data) {
+  
+    $("#folders")
+      .append($('<a></a>').attr('href', data.url).attr('_target', 'blank').text(data.name))
+      .append($('<br/>'))
+  
+  }
     </script>
   </head>
   <body onLoad="getFileList()">
     <h1>Eksportverktøy</h1>
+    <h3>Data-mapper</h3>
+    <div id="folders" style="padding: 0 0 20px 0;"></div>
     <button onClick="getFileList()">Oppdater fil-liste</button>
     <br/><br/>
     <div id="spinner"></div>
