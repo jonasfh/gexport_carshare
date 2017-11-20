@@ -1,4 +1,7 @@
-function onOpen() {
+function onInstall(e) {
+  onOpen(e);
+}
+function onOpen(e) {
   var menuEntries = 
   [ 
     {
@@ -8,11 +11,15 @@ function onOpen() {
   ];
   var sheet = SpreadsheetApp.getActiveSpreadsheet();
   sheet.addMenu("Faktura-eksport",menuEntries);
-
 }
 function openSidebar() {
   var html = HtmlService.createHtmlOutputFromFile('sidebar.html');
   SpreadsheetApp.getUi().showSidebar(html);  
+}
+
+function getFolderUrl(name) {
+  var folder = DriveApp.getFolderById(getProperty(name));
+  return {url:folder.getUrl(), name: folder.getName()};
 }
 
 function listUhandledFiles() {
