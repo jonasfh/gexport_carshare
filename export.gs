@@ -29,10 +29,15 @@ function openSidebar() {
 
 /*
 * Get the for a folder with a given, symbolic name, used in the setup.
+* Takes strings as input, and returns an array of {url, name} - objects.
 */
-function getFolderUrl(name) {
-  var folder = DriveApp.getFolderById(getProperty(name));
-  return {url:folder.getUrl(), name: folder.getName()};
+function getFolderUrls() {
+  var output = [];
+  for (var i = 0; i < arguments.length; i++) {
+    var folder = DriveApp.getFolderById(getProperty(arguments[i]));
+    output.push({url:folder.getUrl(), name: folder.getName()});
+  }
+  return output;
 }
 
 /*
@@ -41,6 +46,7 @@ function getFolderUrl(name) {
 function listUhandledFiles() {
   // Folder Bildeleringen/letsgo/autopass
   var folder = DriveApp.getFolderById(getProperty('autopass'));
+  
   // Folder Bildeleringen/letsgo/autopass_v1/JSON
   var json_folder = DriveApp.getFolderById(getProperty('json'));
   var files = folder.getFiles();
@@ -262,4 +268,46 @@ function getProperty(name) {
     }
   }
   return global_setup[name];
+}
+
+/*
+* Check if setup is ok. If not: Set up!
+*/
+
+function isSetup() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("SETUP");
+  if (sheet == null) {
+    setup();
+    return false;
+  }
+  return true;
+}
+
+function setup() {
+  sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("SETUP");
+  // Create autopass folder
+  var autopass = DriveApp.getRootFolder().createFolder("Mappe for autopass faktura-filer")
+  // Create json folder
+  var json = autopass.createFolder("Mappe for eksporterte json-filer");
+  sheet.getRange(1, 1).setValue("Oppsett-side for eksport-verktøyet").setFontSize(26);
+  sheet.getRange(2,1).setValue(
+    "Dette regnearket har oppsettet for eksportverktøyet. Forklaringer: \n" +
+    "autopass - ID for mappen med autopass-faktureringer \n" +
+    "json - ID for mappen der de eksporterte json-filene lagres \n" +
+    "\n" +
+    "ID for en mappe finner du i slutten av url-en når du er inne på en mappe, som f.eks: \n" +
+    "https://drive.google.com/drive/u/0/folders/1vqeWfmSOuhZICljldsjfsfKUzg7XE8PvXf"
+  );
+  sheet.setRowHeight(2, 120);
+  var r = sheet.getRange("A4:B6");
+  r.setValues(
+    [
+      ["Nøkkelord", "Verdi"],
+      ["autopass", autopass.getId()],
+      ["json", json.getId()]
+    ]
+  );
+  sheet.getRange("4:4").setFontWeight("bold");
+  
+  global_setup = {autopass:autopass.getId(), json: json.getId()};
 }
