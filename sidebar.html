@@ -43,8 +43,8 @@
   function getFileList() {
     // display folders:
     $("#folders").empty()
-    google.script.run.withSuccessHandler(showFolder).getFolderUrl("autopass");
-    google.script.run.withSuccessHandler(showFolder).getFolderUrl("json");
+    
+    google.script.run.withSuccessHandler(showFolder).getFolderUrls("autopass", "json");
     
     $('#file_list').text('');
     var sp = 'Laster fil-liste'
@@ -60,15 +60,31 @@
     }
   }
   function showFolder(data) {
-  
-    $("#folders")
-      .append($('<a></a>').attr('href', data.url).attr('_target', 'blank').text(data.name))
-      .append($('<br/>'))
-  
+    for (var i=0; i<data.length; i++) {
+      $("#folders")
+        .append($('<a></a>').attr('href', data[i].url).attr('target', '_blank').text(data[i].name))
+        .append($('<br/>'))
+    }
+  }
+  function exportInit() {
+    google.script.run.withSuccessHandler(exportSetup).isSetup();
+  }
+  function exportSetup(data) {
+    if (data) {
+      getFileList();
+    }
+    else {
+      $("#folders").html(
+        "Oppretter SETUP - ark og data-mapper. <br/> " +
+        "Du må legge inn autopass-data i autopass-mappen for å prosessere disse.<br/>" +
+        "Klikk på 'Oppdater fil-liste' for få lenker til mappene.<br/>" +
+        "Etter du har lagt inn filer kan du klikke på knappen igjen for å starte fil-eksport."
+      );
+    }
   }
     </script>
   </head>
-  <body onLoad="getFileList()">
+  <body onLoad="exportInit()">
     <h1>Eksportverktøy</h1>
     <h3>Data-mapper</h3>
     <div id="folders" style="padding: 0 0 20px 0;"></div>
