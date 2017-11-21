@@ -119,6 +119,9 @@ function convertExcel2Sheets(excelFile, filename) {
 function report_basic_stats(obj) {
   // UI Spreadsheet
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("STATS");
+  if (sheet == null) {
+    sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("STATS");
+  }
   sheet.getParent().setActiveSheet(sheet);
   var startAt = 5;
   // Calculate number of rows
@@ -251,7 +254,7 @@ function getProperty(name) {
   }
   if (Object.keys(global_setup).length === 0 && global_setup.constructor === Object) {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("SETUP");
-    var range = sheet.getRange("setup").getValues();
+    var range = sheet.getRange("A5:B20").getValues();
     for (var i=0; i<range.length; i++) {
       if (range[i][0] != "") {
         global_setup[range[i][0]] = range[i][1];       
