@@ -1,3 +1,6 @@
+// Structure with the global setup
+global_setup = {};
+
 function onInstall(e) {
   onOpen(e);
 }
@@ -218,4 +221,19 @@ function autopass_JSON_convert(fid, gObject) {
     return {'fid':fid, 'url':output.getUrl(), 'name':output.getName() };
   }
   return data;
+}
+function getProperty(name) {
+  if (typeof name == 'undefined') {
+    name = 'json';
+  }
+  if (Object.keys(global_setup).length === 0 && global_setup.constructor === Object) {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("SETUP");
+    var range = sheet.getRange("setup").getValues();
+    for (var i=0; i<range.length; i++) {
+      if (range[i][0] != "") {
+        global_setup[range[i][0]] = range[i][1];       
+      }
+    }
+  }
+  return global_setup[name];
 }
