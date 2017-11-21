@@ -1,9 +1,12 @@
 // Structure with the global setup
 global_setup = {};
 
+// Called when the functionality is installed
 function onInstall(e) {
   onOpen(e);
 }
+
+// Called when the spreadsheet is opened
 function onOpen(e) {
   var menuEntries = 
   [ 
@@ -15,16 +18,26 @@ function onOpen(e) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet();
   sheet.addMenu("Faktura-eksport",menuEntries);
 }
+
+/*
+* Opens the html sidebare, with a nice ui for exporting files
+*/
 function openSidebar() {
   var html = HtmlService.createHtmlOutputFromFile('sidebar.html');
   SpreadsheetApp.getUi().showSidebar(html);  
 }
 
+/*
+* Get the for a folder with a given, symbolic name, used in the setup.
+*/
 function getFolderUrl(name) {
   var folder = DriveApp.getFolderById(getProperty(name));
   return {url:folder.getUrl(), name: folder.getName()};
 }
 
+/*
+* List files that are not already exported.
+*/
 function listUhandledFiles() {
   // Folder Bildeleringen/letsgo/autopass
   var folder = DriveApp.getFolderById(getProperty('autopass'));
@@ -100,6 +113,9 @@ function convertExcel2Sheets(excelFile, filename) {
   return DriveApp.getFileById(fileDataResponse.id);
 }
 
+/*
+* Get errors and statistics revealed during the export.
+*/
 function report_basic_stats(obj) {
   // UI Spreadsheet
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("STATS");
@@ -136,6 +152,9 @@ function report_basic_stats(obj) {
   }
 }
 
+/*
+* Convert the spreadsheet to a json structure.
+*/
 function autopass_JSON_convert(fid, gObject) {
   var spreadsheet = SpreadsheetApp.openById(fid);
   var report = false;
@@ -222,6 +241,10 @@ function autopass_JSON_convert(fid, gObject) {
   }
   return data;
 }
+
+/*
+* Get setup property, currently stored in the spreadsheet.
+*/
 function getProperty(name) {
   if (typeof name == 'undefined') {
     name = 'json';
