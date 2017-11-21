@@ -138,12 +138,12 @@ function report_basic_stats(obj) {
   sheet.insertRowsBefore(startAt, numrows);
   startAt++;
   for (i = 0; i < obj.length; i++) {
-    var range = sheet.getRange(startAt, 1, 3, 3);
+    var range = sheet.getRange(startAt, 1, 3, 4);
     range.setValues(
       [
-        ["Eksportert dato: " + new Date().toString().substr(4, 21), "Filnavn", obj[i].file_name],
-        ["Ant. Linjer", "Største beløp", "Ant. 0 - beløp"], 
-        [obj[i].num_lines, obj[i].max_amount, obj[i].num_zeros],
+        ["Eksportert dato: " + new Date().toString().substr(4, 21), "Filnavn", obj[i].file_name, ""],
+        ["Ant. Linjer", "Største beløp", "Ant. 0 - beløp", "Ant rader OK"], 
+        [obj[i].num_lines, obj[i].max_amount, obj[i].num_zeros, obj[i].num_lines_ok],
       ]
     );
     sheet.getRange(startAt, 1, 1, 3).setFontWeight("bold").setFontSize(14).setBackgroundRGB(252, 251, 224);
@@ -172,6 +172,7 @@ function autopass_JSON_convert(fid, gObject) {
     gObject = {
       "file_name": spreadsheet.getName(),
       "num_lines": 0, 
+      "num_lines_ok": 0, 
       "max_amount": 0, 
       "num_zeros": 0, 
       "errors": [],
@@ -236,7 +237,8 @@ function autopass_JSON_convert(fid, gObject) {
       }
     }
     // add data
-    data.push({date: date, reg_id: reg_id, amount: amount, comment: comment})
+    data.push({date: date, reg_id: reg_id, amount: amount, comment: comment});
+    gObject.num_lines_ok++;    
   }
   if (report) {
     var file = DriveApp.getFileById(fid);
