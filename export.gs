@@ -127,6 +127,10 @@ function report_basic_stats(obj) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("STATS");
   if (sheet == null) {
     sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("STATS");
+    sheet.getRange(1,1).setValue("Statistikk for konverterte filer").setFontSize(36);
+    var s = "Nedenfor finner du statistikk for filer som er konvertert med verktøyet. Nyeste filer øverst.";
+    sheet.getRange(2,1).setValue(s);
+    sheet.autoResizeColumn(1);
   }
   sheet.getParent().setActiveSheet(sheet);
   var startAt = 5;
