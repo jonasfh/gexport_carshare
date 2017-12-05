@@ -7,7 +7,7 @@
   var deletimer = -1;
   var intcount = 0;
   function listFiles(data) {
-    $('#file_list').html($('<h2></h2>').text("Filer i autopass-mappen som ikke er eksportert"));
+    $('#file_list').html($('<h2></h2>').text("Filer i autopass-mappen som ikke er eksportert:"));
     $('#spinner').text('');
     clearTimeouts();
     var txt = "";
@@ -21,7 +21,7 @@
       var b = $("<button></button>");
       b.addClass("export");
       b.text("Eksporter til JSON");
-      $(document).on("click", ".export", function(event) {
+      b.on("click", function(event) {
         $('#spinner').text(sp);
         deletimer = setInterval(function() {
           $('#spinner').text(sp + (Array(intcount%4+1).join(".")));
@@ -62,8 +62,7 @@
   function showFolder(data) {
     for (var i=0; i<data.length; i++) {
       $("#folders")
-        .append($('<a></a>').attr('href', data[i].url).attr('target', '_blank').text(data[i].name))
-        .append($('<br/>'))
+        .append($('<p></p>').html($('<a></a>').attr('href', data[i].url).attr('target', '_blank').text(data[i].name)))
     }
   }
   function exportInit() {
@@ -86,12 +85,12 @@
   </head>
   <body onLoad="exportInit()">
     <h1>Eksportverktøy</h1>
-    <h3>Data-mapper</h3>
+    <h3>Data-mapper:</h3>
     <div id="folders" style="padding: 0 0 20px 0;"></div>
     <button onClick="getFileList()">Oppdater fil-liste</button>
-    <br/><br/>
+    <p>
     <div id="spinner"></div>
-    <br/>
+    </p>
     <div id="file_list"></div>
   </body>
 </html>
