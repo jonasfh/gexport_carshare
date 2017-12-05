@@ -142,12 +142,13 @@ function report_basic_stats(obj) {
   sheet.insertRowsBefore(startAt, numrows);
   startAt++;
   for (i = 0; i < obj.length; i++) {
-    var range = sheet.getRange(startAt, 1, 3, 4);
+    var range = sheet.getRange(startAt, 1, 3, 6);
     range.setValues(
       [
-        ["Eksportert dato: " + new Date().toString().substr(4, 21), "Filnavn", obj[i].file_name, ""],
-        ["Ant. Linjer", "Største beløp", "Ant. 0 - beløp", "Ant rader OK"], 
-        [obj[i].num_lines, obj[i].max_amount, obj[i].num_zeros, obj[i].num_lines_ok],
+        ["Eksportert dato: " + new Date().toString().substr(4, 21), "Filnavn", obj[i].file_name, "", "", ""],
+        ["Ant. Linjer", "Største beløp", "Ant. 0 - beløp", "Ant rader OK", "Første tidspunkt", "Siste tidspunkt"], 
+        [obj[i].num_lines, obj[i].max_amount, obj[i].num_zeros, obj[i].num_lines_ok, 
+            df(obj[i].start, 'j. M kl H:i'), df(obj[i].end, 'j. M kl H:i')],
       ]
     );
     sheet.getRange(startAt, 1, 1, 3).setFontWeight("bold").setFontSize(14).setBackgroundRGB(252, 251, 224);
@@ -206,6 +207,9 @@ function autopass_JSON_convert(fid, gObject) {
     }
     
     if (gObject.max_amount - amount < 0) gObject.max_amount = amount;
+    var jsdate = new Date(d.substr(6,4), d.substr(3,2) - 1, d.substr(0,2), d.substr(12,2), d.substr(15,2), 0, 0);
+    if (typeof gObject.start === 'undefined' || jsdate < gObject.start) gObject.start = jsdate;
+    if (typeof gObject.end === 'undefined' || jsdate > gObject.end) gObject.end = jsdate;
     if (amount < 0) {
       gObject.errors.push({"line_no": row + i, "type": "NEGATIVE AMOUNT",
         "message": "Det er negativt beløp på denne raden."});   
@@ -316,4 +320,49 @@ function setup() {
   sheet.getRange("4:4").setFontWeight("bold");
   
   global_setup = {autopass:autopass.getId(), json: json.getId()};
+}
+
+
+// Simple date formatter
+function df(d, f) {
+  if(d == null || !d instanceof Date || typeof f !== 'string') {
+    return '';
+  }
+  var months = [
+    'Januar',
+    'Februar',
+    'Mars',
+    'April',
+    'Mai',
+    'Juni',
+    'Juli',
+    'August',
+    'September',
+    'Oktober',
+    'November',
+    'Desember',
+  ];
+    // Formats like php
+    var formats = {
+    Y: "d.getFullYear()",
+    n: "d.getMonth()+1",
+    m: "('0'+(d.getMonth()+1)).slice(-2)",
+    M: "months[d.getMonth()].slice(0,3)",
+    F: "months[d.getMonth()]",
+    d: "('0'+d.getDate()).slice(-2)",
+    j: "d.getDate()",
+    H: "('0'+d.getHours()).slice(-2)",
+    i: "('0'+d.getMinutes()).slice(-2)",
+    s: "('0'+d.getSeconds()).slice(-2)",
+    };
+    var output = '';
+    for (var i=0, len=f.length; i<len; i++) {
+    if (f[i] in formats) {
+      output += eval(formats[f[i]])
+    }
+    else {
+      output += f[i];
+    }
+  }
+  return output;
 }
