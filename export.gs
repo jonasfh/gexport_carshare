@@ -69,7 +69,7 @@ function listUhandledFiles() {
           gsfile = folder.getFilesByName(file.getName() + '.gsheet').next();
         }
       }
-      if(!json_folder.getFilesByName(file.getName() + '.json.txt').hasNext()) {
+      if(!json_folder.getFilesByName(gsfile.getName() + '.json.txt').hasNext()) {
         outfiles.push({"name":gsfile.getName(), "id":gsfile.getId()});
       }
     }
