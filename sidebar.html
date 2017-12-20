@@ -2,12 +2,12 @@
 <html>
   <head>
     <base target="_top">
+    <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script type="text/javascript">
   var deletimer = -1;
   var intcount = 0;
   function listFiles(data) {
-    $('#file_list').html($('<h2></h2>').text("Filer i autopass-mappen som ikke er eksportert:"));
     $('#spinner').text('');
     clearTimeouts();
     var txt = "";
@@ -18,9 +18,10 @@
       return;
     }
     for(i=0; i<data.length; i++){
-      var b = $("<button></button>");
+      var b = $("<button></button>").addClass("create");
       b.addClass("export");
-      b.text("Eksporter til JSON");
+      var btext = data[i].name;
+      b.text(btext);
       b.on("click", function(event) {
         $('#spinner').text(sp);
         deletimer = setInterval(function() {
@@ -28,9 +29,9 @@
           intcount++;
         }, 500);
         google.script.run.withSuccessHandler(exportedFile)
-          .autopass_JSON_convert($(event.target).parent('li').attr("id"));
+          .autopass_JSON_convert($(event.target).parent('*').attr("id"));
       });
-      ul.append($("<li></li>").attr("id", data[i].id).append(data[i].name + " ").append(b));
+      ul.append($("<p></p>").attr("id", data[i].id).append(b));
     }
     $('#file_list').append(ul);
   }
@@ -84,10 +85,16 @@
     </script>
   </head>
   <body onLoad="exportInit()">
-    <h1>Eksportverktøy</h1>
-    <h3>Data-mapper:</h3>
+    <h1>
+    Eksportverktøy
+    </h1>
+    <h3>Lenkene nedenfor er mapper med inn-data og ut-data:</h3>
     <div id="folders" style="padding: 0 0 20px 0;"></div>
-    <button onClick="getFileList()">Oppdater fil-liste</button>
+    
+    <h3>Nedenfor er filer som kan eksporteres</h3>
+    <button class="action" onClick="getFileList()">Klikk for å oppdatere listen</button>
+    <h4>Klikk en knapp for å eksportere en fil</h4>
+    <h4>Klikk en lenke for å laste ned en eksportert fil</h4>
     <p>
     <div id="spinner"></div>
     </p>
