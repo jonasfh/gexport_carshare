@@ -14,11 +14,11 @@ Install instructions
 * Make new file sidebar.html and copy content from sidebar.html to this
 * Setup Should be in a sheet called SETUP
 * SETUP - sheet is created if it dont exist
-** Keys in column A
-** Values in column B
-** Starting on row 5
+  * Keys in column A
+  * Values in column B
+  * Starting on row 5
 * Keys are:
-** json - id for folder where json files end up
-** autopass - id for folder where autopass-files are placed
+  * json - id for folder where json files end up
+  * autopass - id for folder where autopass-files are placed
 * The folders will be created if they dont exist
 * Reports go in a sheet called "STATS". This sheet will be created if not exists
