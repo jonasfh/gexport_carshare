@@ -184,6 +184,13 @@ function autopass_JSON_convert(fid, gObject) {
     }
   }
   var sheet = spreadsheet.getSheetByName('Sheet1');
+  // Test for correct file format
+  if (sheet.getRange(11, 1).getValue() != 'Brikke') {
+    // Abort with error message
+    SpreadsheetApp.getUi().alert('Filen har feil format. Avbryter eksport.')
+    return false;
+  }
+
   data = [];
   var row = 12;
   var values = sheet.getRange(row, 1, sheet.getLastRow(), sheet.getLastColumn()).getDisplayValues();
