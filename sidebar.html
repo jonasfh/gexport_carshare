@@ -38,6 +38,7 @@
   function exportedFile(data) {
     clearTimeouts();
     $('#spinner').text('');
+    if (!data) return;
     $("#" + data.fid + ' .export').remove()
     $("#" + data.fid).html($('<a></a>').attr('href', data.url).text('Last ned ' + data.name));
   }
